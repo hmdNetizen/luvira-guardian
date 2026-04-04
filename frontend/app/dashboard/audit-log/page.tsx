@@ -16,8 +16,8 @@ export default async function AuditLogPage() {
 
       <div className="bg-white border border-gray-200 rounded-md overflow-hidden shadow-sm">
         {/* Table header */}
-        <div className="grid grid-cols-[2fr_1fr_1fr_1.5fr_1fr_auto] gap-4 px-5 py-3 border-b border-gray-100">
-          {["Action", "Service", "Actor", "Timestamp", "Status", "Step-Up"].map(
+        <div className="grid grid-cols-[2fr_1fr_1fr_1.5fr_1fr] gap-4 px-5 py-3 border-b border-gray-100">
+          {["Action", "Service", "Actor", "Timestamp", "Status"].map(
             (h) => (
               <span
                 key={h}

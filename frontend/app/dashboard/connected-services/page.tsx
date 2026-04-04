@@ -248,7 +248,7 @@ function ConnectedServicesContent() {
 
   return (
     <div className="px-8 py-8 w-full">
-      <div className="mb-8 flex items-start justify-between">
+      <div className="mb-8 flex items-start justify-between max-[450px]:flex-col max-[450px]:space-y-3">
         <div>
           <h1 className="text-2xl font-semibold text-gray-900 tracking-tight">
             Connected Services
@@ -266,7 +266,7 @@ function ConnectedServicesContent() {
             variant="default"
             onClick={handleCheckServices}
             disabled={isChecking}
-            className="flex items-center gap-2 px-4 py-2 text-[13px] font-medium text-white border bg-[#3bcaca] rounded-lg cursor-pointer hover:bg-teal-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center gap-2 px-4 py-2 text-[13px] font-medium text-white border bg-[#3bcaca] rounded cursor-pointer hover:bg-teal-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed max-[450]:min-w-50"
           >
             <svg
               className={`w-3.5 h-3.5 ${isChecking ? "animate-spin" : ""}`}

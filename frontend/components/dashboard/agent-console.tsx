@@ -1,7 +1,7 @@
 import { INITIAL_STEPS } from "@/lib/constants";
 import { ApprovedStep } from "@/types";
-import React, { useState } from "react";
-import { auditLogs } from "@/services/api";
+import { useState } from "react";
+
 import { useQueryClient } from "@tanstack/react-query";
 import {
   useExecuteWorkFlow,
@@ -43,8 +43,6 @@ export default function AgentConsole() {
   const [response, setResponse] = useState<string | null>(null);
 
   const [auditWorkflowId, setAuditWorkflowId] = useState("");
-  const [auditLog, setAuditLog] = useState<string | null>(null);
-  // const [loadingAuditLog, setLoadingAuditLog] = useState(false);
 
   const debouncedLogText = useDebounce(auditWorkflowId, 500);
 
@@ -92,19 +90,6 @@ export default function AgentConsole() {
       setActiveAction(null);
     }
   }
-
-  // async function handleLoadAuditLog() {
-  //   setLoadingAuditLog(true);
-  //   setAuditLog(null);
-  //   try {
-  //     const data = await auditLogs();
-  //     setAuditLog(JSON.stringify(data, null, 2));
-  //   } catch (err) {
-  //     setAuditLog(JSON.stringify({ error: String(err) }, null, 2));
-  //   } finally {
-  //     setLoadingAuditLog(false);
-  //   }
-  // }
 
   return (
     <div className="bg-white border border-gray-200 rounded-md p-5 flex flex-col gap-4 max-[450px]:px-3">

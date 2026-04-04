@@ -22,32 +22,14 @@ export default function LogItem({
   status,
   service,
   agent_id,
-  step_up_required,
 }: TLogItem) {
   return (
-    <li className="grid grid-cols-[2fr_1fr_1fr_1.5fr_1fr_auto] gap-4 px-5 py-3.5 hover:bg-gray-50 transition-colors">
+    <li className="grid grid-cols-[2fr_1fr_1fr_1.5fr_1fr] gap-4 px-5 py-3.5 hover:bg-gray-50 transition-colors">
       <span className="text-[13px] text-gray-800 font-medium">{action}</span>
       <span className="text-[13px] text-gray-500">{service}</span>
       <span className="text-[13px] text-gray-500">{agent_id}</span>
       <span className="text-[12px] text-gray-400 font-mono">{timestamp}</span>
       <StatusBadge status={status} />
-      <span className="flex items-center">
-        {step_up_required ? (
-          <span className="inline-flex items-center gap-1 text-[11px] text-yellow-600">
-            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"
-              />
-            </svg>
-            Required
-          </span>
-        ) : (
-          <span className="text-[11px] text-gray-300">—</span>
-        )}
-      </span>
     </li>
   );
 }
