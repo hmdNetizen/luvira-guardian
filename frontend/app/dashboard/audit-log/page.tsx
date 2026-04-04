@@ -1,11 +1,7 @@
+import AuditLogEntries from "@/components/logs/audit-log-entries";
 import AuditLogs from "@/components/logs/audit-logs";
-import { auth0 } from "@/lib/auth0";
-import { AUDIT_ENTRIES } from "@/lib/constants";
 
 export default async function AuditLogPage() {
-  const token = await auth0.getAccessToken();
-  console.log(token);
-
   return (
     <div className="px-8 py-8">
       <div className="mb-8">
@@ -37,9 +33,7 @@ export default async function AuditLogPage() {
         <AuditLogs />
       </div>
 
-      <p className="text-[12px] text-gray-400 mt-4">
-        {AUDIT_ENTRIES.length} entries · All times in UTC
-      </p>
+      <AuditLogEntries />
     </div>
   );
 }

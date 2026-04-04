@@ -14,6 +14,7 @@ import { checkServicesConnectionStatus } from "@/services/api";
 import { useServiceConnect } from "@/hooks/useServiceConnect";
 import { useDisconnectService } from "@/services/mutations";
 import { getMyAccountToken } from "@/lib/getMyAccountToken";
+import { useSidebar } from "./SidebarContext";
 
 interface TestHarnessProps {
   user: User;
@@ -33,6 +34,7 @@ export default function TestHarness({
   const [connecting, setConnecting] = useState<Set<string>>(new Set());
   const { connect } = useServiceConnect();
   const { mutateAsync: disconnectServiceMutation } = useDisconnectService();
+  const { toggle: toggleSidebar } = useSidebar();
 
   const [copied, setCopied] = useState(false);
 
@@ -41,12 +43,15 @@ export default function TestHarness({
     return () => clearInterval(id);
   }, []);
 
-  const applyStatuses = (statuses: import("@/services/types").TServiceStatus[]) => {
+  const applyStatuses = (
+    statuses: import("@/services/types").TServiceStatus[],
+  ) => {
     setServices((prev) =>
       prev.map((s) => {
         const match = statuses.find((st) => st.service === s.name);
         if (!match) return s;
-        const scopes = match.granted_scopes.length > 0 ? match.granted_scopes : s.scopes;
+        const scopes =
+          match.granted_scopes.length > 0 ? match.granted_scopes : s.scopes;
         return { ...s, status: match.state, scopes, scope: scopes.join(", ") };
       }),
     );
@@ -57,7 +62,11 @@ export default function TestHarness({
     try {
       const service = services.find((s) => s.id === id);
       if (!service) return;
-      await connect(service.connection as import("@/services/types").TConnection, service.scopes, applyStatuses);
+      await connect(
+        service.connection as import("@/services/types").TConnection,
+        service.scopes,
+        applyStatuses,
+      );
     } catch (error) {
       console.error(`Failed to connect ${id}:`, error);
     } finally {
@@ -77,7 +86,8 @@ export default function TestHarness({
       const ma_token = await getMyAccountToken();
       if (!ma_token) return;
       await disconnectServiceMutation({
-        connection: service.connection as import("@/services/types").TConnection,
+        connection:
+          service.connection as import("@/services/types").TConnection,
         ma_token,
       });
       const { services: statuses } = await checkServicesConnectionStatus();
@@ -119,10 +129,39 @@ export default function TestHarness({
   return (
     <div className="flex flex-col h-full">
       {/*  App bar  */}
-      <div className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between shrink-0">
-        <span className="text-[15px] font-semibold text-gray-800">
-          Luvira Guardian Test Harness
-        </span>
+      <div className="bg-white border-b border-gray-200 px-4 md:px-6 py-3 flex items-center justify-between shrink-0">
+        <div className="flex items-center gap-3">
+          {/* Hamburger — mobile only */}
+          <button
+            onClick={toggleSidebar}
+            className="md:hidden w-8 h-8 flex items-center justify-center rounded-md text-gray-500 hover:bg-gray-100 transition-colors"
+            aria-label="Open menu"
+          >
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 6h16M4 12h16M4 18h16"
+              />
+            </svg>
+          </button>
+          <Image
+            src="/logo.svg"
+            alt="Luvira Guardian"
+            width={28}
+            height={28}
+            className="md:hidden"
+          />
+          <span className="text-[15px] font-semibold text-gray-800">
+            Luvira Guardian Test Harness
+          </span>
+        </div>
         <div className="flex items-center gap-3">
           {/* Bell */}
           <button className="w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 transition-colors relative">
@@ -155,7 +194,7 @@ export default function TestHarness({
                 {firstName[0]}
               </div>
             )}
-            <div className="leading-tight">
+            <div className="leading-tight hidden md:block">
               <p className="text-[10px] text-gray-400">Logged in as</p>
               <p className="text-[13px] font-medium text-gray-700">
                 {user.email}
@@ -166,20 +205,20 @@ export default function TestHarness({
       </div>
 
       {/* Scrollable body */}
-      <div className="flex-1 overflow-auto px-6 py-5 flex flex-col gap-5">
+      <div className="flex-1 overflow-auto px-6 py-5 flex flex-col gap-5 max-[450px]:px-2">
         {/* Greeting row */}
-        <div className="flex items-center justify-between">
-          <h1 className="text-[24px] font-bold text-gray-900">
+        <div className="flex items-center justify-between max-[360px]:flex-col max-[360px]:space-y-2">
+          <h1 className="text-[24px] font-bold text-gray-900 max-[450px]:text-xl">
             Hello, {firstName}!
           </h1>
           <div className="flex items-center gap-3">
-            <span className="text-[13px] text-gray-600 tabular-nums">
+            <span className="text-[13px] text-gray-600 tabular-nums max-[768px]:hidden">
               {dateTime}
             </span>
             <button
               onClick={handleCopyToken}
               disabled={!accessToken}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-medium text-gray-600 bg-gray-200 border border-gray-300 rounded-sm hover:bg-gray-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-medium text-gray-600 bg-gray-200 border border-gray-300 rounded-sm hover:bg-gray-50 transition-colors max-[450px]:text-xs disabled:opacity-40 disabled:cursor-not-allowed"
             >
               <svg
                 className="w-3.5 h-3.5 text-gray-400"
@@ -199,7 +238,7 @@ export default function TestHarness({
             <Button
               asChild
               variant="destructive"
-              className="px-4 py-1.5 text-[13px] font-semibold rounded-sm transition-colors"
+              className="px-4 py-1.5 text-[13px] font-semibold rounded-sm transition-colors max-[450px]:text-xs"
             >
               <Link href="/auth/logout">Sign Out</Link>
             </Button>

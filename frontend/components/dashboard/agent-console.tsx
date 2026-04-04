@@ -2,6 +2,7 @@ import { INITIAL_STEPS } from "@/lib/constants";
 import { ApprovedStep } from "@/types";
 import React, { useState } from "react";
 import { auditLogs } from "@/services/api";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   useExecuteWorkFlow,
   usePreflightCheck,
@@ -42,6 +43,8 @@ export default function AgentConsole() {
   const [auditWorkflowId, setAuditWorkflowId] = useState("");
   const [auditLog, setAuditLog] = useState<string | null>(null);
   const [loadingAuditLog, setLoadingAuditLog] = useState(false);
+
+  const queryClient = useQueryClient();
 
   const { mutateAsync: testTokenExchange } = useTestTokenExchange();
   const { mutateAsync: preflightCheck } = usePreflightCheck();
@@ -203,14 +206,16 @@ export default function AgentConsole() {
         </button>
         <button
           onClick={() =>
-            runAction("execute", () =>
-              executeWorkflow(
+            runAction("execute", async () => {
+              const result = await executeWorkflow(
                 workflowPayload(
                   false,
                   steps.filter((s) => s.checked).map((s) => s.id),
                 ),
-              ),
-            )
+              );
+              await queryClient.invalidateQueries({ queryKey: ["audit-log"] });
+              return result;
+            })
           }
           disabled={!!activeAction}
           className="px-3 py-2 bg-green-500 text-white text-[12px] font-medium rounded hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
