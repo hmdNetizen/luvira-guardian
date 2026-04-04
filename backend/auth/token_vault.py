@@ -32,6 +32,7 @@ logger = logging.getLogger(__name__)
 # These must match the exact connection names configured in your Auth0 tenant.
 _SERVICE_CONNECTION_MAP: Dict[str, str] = {
     "gitlab": "gitlab",
+    "slack": "sign-in-with-slack",
     "linkedin": "linkedin",
     "google-calendar": "google-oauth2",
 }
@@ -39,6 +40,7 @@ _SERVICE_CONNECTION_MAP: Dict[str, str] = {
 # Scope requirements per service
 _SERVICE_SCOPES: Dict[str, List[str]] = {
     "gitlab": ["read_api", "write_api"],
+    "slack": ["chat:write"],
     "linkedin": ["w_member_social"],
     "google-calendar": ["https://www.googleapis.com/auth/calendar.events"],
 }
