@@ -155,6 +155,51 @@ async def get_delegated_token(
     return provider_token
 
 
+async def get_provider_token_from_mgmt(user_id: str, provider: str) -> str:
+    """
+    Fetch a stored provider access token directly from the Auth0 Management API
+    GET /api/v2/users/{user_id} → identities[].access_token.
+
+    Requires "Store Tokens" to be enabled on the Auth0 social connection.
+    Falls back to this when the federated token exchange returns an Auth0 token
+    instead of the actual provider token.
+    """
+    settings = get_settings()
+    mgmt_token = await _get_mgmt_api_token()
+    headers = {"Authorization": f"Bearer {mgmt_token}"}
+
+    url = f"{settings.auth0_mgmt_base_url}/users/{user_id}"
+    async with httpx.AsyncClient(timeout=10) as client:
+        response = await client.get(url, headers=headers)
+
+    if response.status_code != 200:
+        logger.error(
+            "Failed to fetch user profile: status=%s body=%s",
+            response.status_code, response.text[:200],
+        )
+        raise TokenVaultError(
+            service=provider,
+            message=f"Failed to fetch user profile from Auth0 Management API.",
+            error_code="connection_lost",
+        )
+
+    data = response.json()
+    identities: list = data.get("identities", [])
+
+    for identity in identities:
+        if identity.get("provider") == provider:
+            access_token = identity.get("access_token")
+            if access_token:
+                logger.info("Retrieved %s token from Management API identities for user %s", provider, user_id)
+                return access_token
+
+    raise TokenVaultError(
+        service=provider,
+        message=f"No stored access token found for provider '{provider}'. Please reconnect.",
+        error_code="connection_lost",
+    )
+
+
 async def get_connected_services(user_id: str) -> List[Dict[str, Any]]:
     """
     List connected accounts for a user via the Auth0 Management API.
@@ -181,13 +226,15 @@ async def get_connected_services(user_id: str) -> List[Dict[str, Any]]:
         return []
 
     data = response.json()
+    logger.info("Connected accounts raw response for user %s: %s", user_id, str(data)[:500])
     accounts = data if isinstance(data, list) else data.get("connected_accounts", data.get("accounts", []))
 
     results: List[Dict[str, Any]] = []
     for account in accounts:
+        connection = account.get("connection", "") or account.get("connection_id", "") or account.get("strategy", "")
         results.append({
-            "provider": account.get("connection", ""),
-            "connection": account.get("connection", ""),
+            "provider": connection,
+            "connection": connection,
             "scopes": account.get("scopes", []),
         })
 

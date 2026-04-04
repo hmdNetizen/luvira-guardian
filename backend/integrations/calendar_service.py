@@ -96,11 +96,21 @@ async def create_event(
 def _handle_response_errors(response: httpx.Response, action: str) -> None:
     """Normalize Google Calendar HTTP errors into CalendarError."""
     if response.status_code == 401:
+        logger.error(
+            "Google Calendar 401: action=%s body=%s",
+            action,
+            response.text[:500],
+        )
         raise CalendarError(
             message="Google Calendar token is invalid or has been revoked.",
             status_code=401,
         )
     if response.status_code == 403:
+        logger.error(
+            "Google Calendar 403: action=%s body=%s",
+            action,
+            response.text[:500],
+        )
         raise CalendarError(
             message="Insufficient Google Calendar permissions for this action.",
             status_code=403,

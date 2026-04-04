@@ -199,9 +199,9 @@ def build_permission_contract_scopes(steps: List[WorkflowStep]) -> dict:
                 scopes["gitlab"].append("read_api")
         if step == WorkflowStep.generate_incident_summary:
             pass
-        if step == WorkflowStep.post_linkedin_update:
-            if "w_member_social" not in scopes["linkedin"]:
-                scopes["linkedin"].append("w_member_social")
+        if step == WorkflowStep.send_slack_notification:
+            if "chat:write" not in scopes["slack"]:
+                scopes["slack"].append("chat:write")
         if step == WorkflowStep.schedule_calendar_meeting:
             cal_scope = "https://www.googleapis.com/auth/calendar.events"
             if cal_scope not in scopes["google_calendar"]:
