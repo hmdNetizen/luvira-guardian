@@ -9,18 +9,18 @@ export default async function Home() {
   }
 
   return (
-    <main className="min-h-screen bg-[#060812] flex items-center justify-center px-6 py-12 relative overflow-hidden">
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-150 md:w-225 h-75 md:h-112.5 bg-blue-600/20 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-100 md:w-150 h-50 md:h-75 bg-violet-600/15 rounded-full blur-3xl pointer-events-none" />
+    <main className="min-h-screen bg-gray-50 flex items-center justify-center px-6 py-12 relative overflow-hidden">
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-150 md:w-225 h-75 md:h-112.5 bg-[#3bcaca]/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-100 md:w-150 h-50 md:h-75 bg-[#3bcaca]/8 rounded-full blur-3xl pointer-events-none" />
 
       <div className="relative w-full max-w-sm md:max-w-md">
-        <div className="bg-white/4 backdrop-blur-2xl border border-white/8 rounded-3xl shadow-2xl shadow-black/60 overflow-hidden">
-          <div className="h-px bg-linear-to-r from-transparent via-blue-500/60 to-transparent" />
+        <div className="bg-white border border-gray-200 rounded-3xl shadow-xl shadow-gray-200/80 overflow-hidden">
+          <div className="h-px bg-linear-to-r from-transparent via-[#3bcaca]/50 to-transparent" />
 
           <div className="px-8 md:px-10 pt-9 md:pt-10 pb-9 md:pb-10 flex flex-col items-center gap-6 md:gap-7">
-            <div className="w-14 h-14 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
+            <div className="w-14 h-14 rounded-2xl bg-[#3bcaca]/10 border border-[#3bcaca]/20 flex items-center justify-center">
               <svg
-                className="w-7 h-7 text-blue-400"
+                className="w-7 h-7 text-[#3bcaca]"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -35,21 +35,21 @@ export default async function Home() {
             </div>
 
             <div className="text-center">
-              <h1 className="text-xl md:text-2xl font-semibold text-white tracking-[-0.02em]">
+              <h1 className="text-xl md:text-2xl font-semibold text-gray-900 tracking-[-0.02em]">
                 Luvira Guardian
               </h1>
-              <p className="text-slate-400 text-sm md:text-[15px] mt-1.5">
+              <p className="text-gray-500 text-sm md:text-[15px] mt-1.5">
                 Secure AI Incident Response Agent
               </p>
-              <p className="text-slate-600 text-xs mt-1">
+              <p className="text-gray-400 text-xs mt-1">
                 Powered by Auth0 Token Vault
               </p>
             </div>
 
-            <div className="w-full h-px bg-white/6" />
+            <div className="w-full h-px bg-gray-100" />
 
             <div className="flex flex-col items-center gap-5 w-full">
-              <p className="text-slate-400 text-sm md:text-[15px] text-center leading-relaxed tracking-[-0.01em]">
+              <p className="text-gray-500 text-sm md:text-[15px] text-center leading-relaxed tracking-[-0.01em]">
                 Sign in to access the secure incident response console.
               </p>
               <LoginButton />

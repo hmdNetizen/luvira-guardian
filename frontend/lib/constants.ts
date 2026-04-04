@@ -45,7 +45,7 @@ export const INITIAL_STEPS: Array<ApprovedStep> = [
     id: "retrieve_gitlab_issue",
     label: "retrieve_gitlab_issue",
     required: true,
-    checked: false,
+    checked: true,
   },
   {
     id: "generate_incident_summary",
