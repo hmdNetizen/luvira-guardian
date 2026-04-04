@@ -33,6 +33,7 @@ export interface WorkflowStep {
   label: string;
   service: string;
   status: StepStatus;
+  failureReason?: string;
 }
 
 export type ConsoleState =

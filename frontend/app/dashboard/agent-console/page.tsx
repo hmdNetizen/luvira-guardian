@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useRef } from "react";
 import { ConsoleState, StepStatus, WorkflowStep } from "@/types";
+import { useExecuteWorkFlow } from "@/services/mutations";
+import { useQueryClient } from "@tanstack/react-query";
 
 const PLAN_STEPS = [
   "Retrieve GitLab incident issue",
@@ -9,6 +11,14 @@ const PLAN_STEPS = [
   "Notify Slack channel",
   "Schedule follow-up meeting",
 ];
+
+// Maps local step IDs to the action names the API returns
+const STEP_ID_TO_ACTION: Record<string, string> = {
+  "gitlab-read": "retrieve_gitlab_issue",
+  "summary": "generate_incident_summary",
+  "slack-message": "send_slack_notification",
+  "calendar-create": "schedule_calendar_meeting",
+};
 
 const WORKFLOW_STEPS: Omit<WorkflowStep, "status">[] = [
   { id: "gitlab-read", label: "GitLab issue retrieved", service: "GitLab" },
@@ -351,8 +361,15 @@ export default function AgentConsolePage() {
   const [prompt, setPrompt] = useState(
     "Review the incident issue, notify the team, and schedule a follow-up meeting.",
   );
+  const [gitlabProjectId, setGitlabProjectId] = useState("");
+  const [gitlabIssueIid, setGitlabIssueIid] = useState("");
+  const [slackChannel, setSlackChannel] = useState("");
+  const [calendarId, setCalendarId] = useState("primary");
   const [state, setState] = useState<ConsoleState>({ type: "idle" });
   const executionRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const { mutateAsync: executeWorkflow } = useExecuteWorkFlow();
+  const queryClient = useQueryClient();
 
   function initSteps(): WorkflowStep[] {
     return WORKFLOW_STEPS.map((s) => ({ ...s, status: "pending" }));
@@ -368,10 +385,43 @@ export default function AgentConsolePage() {
     setState({ type: "idle" });
   }
 
-  function handleApprove() {
+  async function handleApprove() {
     const steps = initSteps();
     setState({ type: "executing", steps, connectionLost: null });
-    runStep(steps, 0);
+    try {
+      const result = await executeWorkflow({
+        prompt,
+        gitlab_project_id: gitlabProjectId || null,
+        gitlab_issue_iid: gitlabIssueIid || null,
+        slack_channel: slackChannel || null,
+        calendar_id: calendarId,
+        preview_only: false,
+      });
+      await queryClient.invalidateQueries({ queryKey: ["audit-log"] });
+
+      if (result.status === "failed") {
+        const updatedSteps = steps.map((s) => {
+          const action = STEP_ID_TO_ACTION[s.id];
+          if (result.failed_steps.includes(action)) {
+            const item = result.timeline.find((t) => t.action === action);
+            return { ...s, status: "failed" as StepStatus, failureReason: item?.failure_reason };
+          }
+          if (result.completed_steps.includes(action)) {
+            return { ...s, status: "success" as StepStatus };
+          }
+          return s;
+        });
+        setState({ type: "completed", steps: updatedSteps });
+      } else {
+        runStep(steps, 0);
+      }
+    } catch (err) {
+      const reason = err instanceof Error ? err.message : "Workflow execution failed";
+      const failedSteps = steps.map((s, i) =>
+        i === 0 ? { ...s, status: "failed" as StepStatus, failureReason: reason } : s,
+      );
+      setState({ type: "completed", steps: failedSteps });
+    }
   }
 
   function runStep(steps: WorkflowStep[], index: number) {
@@ -452,6 +502,10 @@ export default function AgentConsolePage() {
     };
   }, []);
 
+  const isSuccessfullyCompleted =
+    state.type === "completed" &&
+    state.steps.every((s) => s.status === "success");
+
   const executingSteps =
     state.type === "executing"
       ? state.steps
@@ -496,26 +550,52 @@ export default function AgentConsolePage() {
           <textarea
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
-            disabled={state.type !== "idle"}
+            disabled={isSuccessfullyCompleted}
             rows={3}
             className="w-full bg-transparent text-[14px] text-gray-700 placeholder:text-gray-300 resize-none outline-none leading-relaxed disabled:opacity-50"
             placeholder="Describe the incident response workflow…"
           />
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
+            {(
+              [
+                { label: "GitLab Project ID", value: gitlabProjectId, set: setGitlabProjectId, placeholder: "e.g. 8472739" },
+                { label: "GitLab Issue IID", value: gitlabIssueIid, set: setGitlabIssueIid, placeholder: "e.g. 1" },
+                { label: "Slack Channel", value: slackChannel, set: setSlackChannel, placeholder: "e.g. #incidents" },
+                { label: "Calendar ID", value: calendarId, set: setCalendarId, placeholder: "e.g. primary" },
+              ] as const
+            ).map((field) => (
+              <div key={field.label} className="flex flex-col gap-1">
+                <label className="text-[10px] font-medium text-gray-400 uppercase tracking-wider">
+                  {field.label}
+                </label>
+                <input
+                  type="text"
+                  value={field.value}
+                  onChange={(e) => field.set(e.target.value)}
+                  disabled={isSuccessfullyCompleted}
+                  placeholder={field.placeholder}
+                  className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-[13px] text-gray-700 placeholder:text-gray-300 outline-none focus:border-[#3bcaca] focus:ring-1 focus:ring-[#3bcaca]/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                />
+              </div>
+            ))}
+          </div>
+
           <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
-            {state.type === "idle" ? (
-              <button
-                onClick={handleSubmit}
-                disabled={!prompt.trim()}
-                className="px-4 py-2 text-[13px] font-medium text-white bg-[#3bcaca] rounded-lg hover:bg-[#2db8b8] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-              >
-                Run Workflow
-              </button>
-            ) : (
+            {isSuccessfullyCompleted ? (
               <button
                 onClick={handleReset}
                 className="px-4 py-2 text-[13px] font-medium text-gray-500 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
               >
                 Reset
+              </button>
+            ) : (
+              <button
+                onClick={handleSubmit}
+                disabled={state.type !== "idle" || !prompt.trim()}
+                className="px-4 py-2 text-[13px] font-medium text-white bg-[#3bcaca] rounded-lg hover:bg-[#2db8b8] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                Run Workflow
               </button>
             )}
             {state.type === "executing" && (
@@ -610,6 +690,11 @@ export default function AgentConsolePage() {
                           <span className="text-red-500"> · Failed</span>
                         )}
                       </p>
+                      {step.status === "failed" && step.failureReason && (
+                        <p className="text-[11px] text-red-400 font-mono mt-1.5 bg-red-50 border border-red-100 rounded px-2 py-1">
+                          {step.failureReason}
+                        </p>
+                      )}
                     </div>
                   </div>
                 ))}

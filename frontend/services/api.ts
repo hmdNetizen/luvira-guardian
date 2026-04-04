@@ -10,12 +10,15 @@ import {
   TPreflightCheckResponse,
   TServiceStatusResponse,
   TWorkFlowPayload,
+  TWorkflowExecutionResponse,
 } from "./types";
 
-export const auditLogs = async (): Promise<TLogResponse> => {
-  const response = await kyInstance(
-    apiConfig["audit-log"],
-  ).json<TLogResponse>();
+export const auditLogs = async (
+  workflow_id?: string,
+): Promise<TLogResponse> => {
+  const response = await kyInstance(apiConfig["audit-log"], {
+    ...(workflow_id && { searchParams: { workflow_id } }),
+  }).json<TLogResponse>();
 
   return response;
 };
@@ -84,8 +87,10 @@ export const previewWorkflow = async (
 
 export const executeWorkflow = async (
   payload: TWorkFlowPayload,
-): Promise<unknown> => {
-  return await kyInstance.post(`agent/execute`, { json: payload }).json();
+): Promise<TWorkflowExecutionResponse> => {
+  return await kyInstance
+    .post(`agent/execute`, { json: payload })
+    .json<TWorkflowExecutionResponse>();
 };
 
 export const testHighRiskDelete = async (payload: {

@@ -11,6 +11,8 @@ import {
   useTestTokenExchange,
 } from "@/services/mutations";
 import { TWorkFlowPayload } from "@/services/types";
+import { useAuditLogsQuery } from "@/services/queries";
+import useDebounce from "@/hooks/use-debounce";
 
 type ActionKey =
   | "tokenExchange"
@@ -42,7 +44,9 @@ export default function AgentConsole() {
 
   const [auditWorkflowId, setAuditWorkflowId] = useState("");
   const [auditLog, setAuditLog] = useState<string | null>(null);
-  const [loadingAuditLog, setLoadingAuditLog] = useState(false);
+  // const [loadingAuditLog, setLoadingAuditLog] = useState(false);
+
+  const debouncedLogText = useDebounce(auditWorkflowId, 500);
 
   const queryClient = useQueryClient();
 
@@ -51,6 +55,8 @@ export default function AgentConsole() {
   const { mutateAsync: previewWorkflow } = usePreviewWorkflow();
   const { mutateAsync: executeWorkflow } = useExecuteWorkFlow();
   const { mutateAsync: testHighRiskDelete } = useTestHighRiskDelete();
+
+  const { data, isLoading } = useAuditLogsQuery(debouncedLogText);
 
   function handleToggleStep(id: string) {
     setSteps((prev) =>
@@ -87,18 +93,18 @@ export default function AgentConsole() {
     }
   }
 
-  async function handleLoadAuditLog() {
-    setLoadingAuditLog(true);
-    setAuditLog(null);
-    try {
-      const data = await auditLogs();
-      setAuditLog(JSON.stringify(data, null, 2));
-    } catch (err) {
-      setAuditLog(JSON.stringify({ error: String(err) }, null, 2));
-    } finally {
-      setLoadingAuditLog(false);
-    }
-  }
+  // async function handleLoadAuditLog() {
+  //   setLoadingAuditLog(true);
+  //   setAuditLog(null);
+  //   try {
+  //     const data = await auditLogs();
+  //     setAuditLog(JSON.stringify(data, null, 2));
+  //   } catch (err) {
+  //     setAuditLog(JSON.stringify({ error: String(err) }, null, 2));
+  //   } finally {
+  //     setLoadingAuditLog(false);
+  //   }
+  // }
 
   return (
     <div className="bg-white border border-gray-200 rounded-md p-5 flex flex-col gap-4 max-[450px]:px-3">
@@ -326,13 +332,13 @@ export default function AgentConsole() {
         <div className="bg-white border border-gray-200 rounded-md p-4 flex flex-col gap-3">
           <h3 className="text-[14px] font-semibold text-gray-800">Audit Log</h3>
           <div className="flex items-center gap-2">
-            <button
+            {/* <button
               onClick={handleLoadAuditLog}
               disabled={loadingAuditLog}
               className="shrink-0 px-3 py-1.5 bg-[#3bcaca] text-white text-[12px] font-medium rounded hover:bg-[#2db8b8] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loadingAuditLog ? "Loading…" : "Load Audit Logs"}
-            </button>
+            </button> */}
             <input
               type="text"
               value={auditWorkflowId}
@@ -344,16 +350,16 @@ export default function AgentConsole() {
             className="bg-gray-50 border border-gray-200 rounded-md p-4 overflow-auto"
             style={{ minHeight: 180, maxHeight: 260 }}
           >
-            {loadingAuditLog ? (
+            {isLoading ? (
               <div className="flex items-start gap-2">
                 <span className="mt-0.5 w-3 h-3 shrink-0 rounded-full border-2 border-[#3bcaca] border-t-transparent animate-spin" />
                 <p className="text-[12px] text-[#3bcaca] font-mono leading-relaxed">
                   Loading audit logs…
                 </p>
               </div>
-            ) : auditLog ? (
+            ) : data ? (
               <pre className="text-[11px] text-gray-500 font-mono leading-relaxed whitespace-pre-wrap break-all">
-                {auditLog}
+                {JSON.stringify(data, null, 2)}
               </pre>
             ) : (
               <pre className="text-[11px] text-gray-300 font-mono leading-relaxed select-none">
