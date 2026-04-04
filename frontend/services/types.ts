@@ -17,7 +17,7 @@ export type TLogResponse = {
   total: number;
 };
 
-export type TConnection = "gitlab" | "google-oauth2" | "linkedin" | "slack";
+export type TConnection = "gitlab" | "google-oauth2" | "sign-in-with-slack";
 
 export type TConnectPayload = {
   connection: TConnection;

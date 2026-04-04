@@ -6,7 +6,7 @@ import { ConsoleState, StepStatus, WorkflowStep } from "@/types";
 const PLAN_STEPS = [
   "Retrieve GitLab incident issue",
   "Generate incident summary",
-  "Notify LinkedIn connections",
+  "Notify Slack channel",
   "Schedule follow-up meeting",
 ];
 
@@ -17,7 +17,7 @@ const WORKFLOW_STEPS: Omit<WorkflowStep, "status">[] = [
     label: "Incident summary generated",
     service: "Luvira Guardian",
   },
-  { id: "linkedin-post", label: "LinkedIn post published", service: "LinkedIn" },
+  { id: "slack-message", label: "Slack message sent", service: "Slack" },
   {
     id: "calendar-create",
     label: "Calendar event created",
@@ -122,7 +122,7 @@ function PermissionContractModal({
               <ul className="space-y-1">
                 {[
                   "Read GitLab Incident Issue",
-                  "Post LinkedIn Notification",
+                  "Send Slack Notification",
                   "Schedule Calendar Meeting",
                 ].map((action) => (
                   <li
@@ -154,7 +154,7 @@ function PermissionContractModal({
               <div className="space-y-1.5">
                 {[
                   { service: "GitLab", scope: "read_api" },
-                  { service: "LinkedIn", scope: "w_member_social" },
+                  { service: "Slack", scope: "chat:write" },
                   {
                     service: "Google Calendar",
                     scope: "…/auth/calendar.events",
@@ -427,7 +427,7 @@ export default function AgentConsolePage() {
   function handleSimulateConnectionLost() {
     if (state.type !== "executing") return;
     if (executionRef.current) clearTimeout(executionRef.current);
-    setState({ type: "connection_lost", steps: state.steps, service: "LinkedIn" });
+    setState({ type: "connection_lost", steps: state.steps, service: "Slack" });
   }
 
   function handleReconnect() {

@@ -1,5 +1,6 @@
 import { Service } from "@/types";
 import Image from "next/image";
+import { Button } from "@/components/ui/button";
 
 export default function ServiceCard({
   service,
@@ -43,19 +44,24 @@ export default function ServiceCard({
           {isConnected ? "Connected" : "Disconnected"}
         </span>
       </div>
-      <button
-        onClick={() =>
-          isConnected ? onDisconnect(service.id) : onConnect(service.id)
-        }
-        disabled={connecting}
-        className={`w-full py-1.5 rounded-sm text-[12px] font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
-          isConnected
-            ? "border border-gray-300 text-gray-500 bg-white hover:bg-gray-50"
-            : "bg-[#3bcaca] text-white hover:bg-[#2db8b8]"
-        }`}
-      >
-        {connecting ? "Connecting…" : service.connectLabel}
-      </button>
+      {isConnected ? (
+        <Button
+          variant="destructive"
+          onClick={() => onDisconnect(service.id)}
+          disabled={connecting}
+          className="w-full py-1.5 rounded-sm text-[12px] font-medium"
+        >
+          {connecting ? "Disconnecting…" : "Disconnect"}
+        </Button>
+      ) : (
+        <Button
+          onClick={() => onConnect(service.id)}
+          disabled={connecting}
+          className="w-full py-1.5 rounded-sm text-[12px] font-medium bg-[#3bcaca] hover:bg-[#2db8b8] text-white"
+        >
+          {connecting ? "Connecting…" : service.connectLabel}
+        </Button>
+      )}
     </div>
   );
 }

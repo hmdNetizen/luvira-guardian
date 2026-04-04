@@ -10,8 +10,10 @@ import { INITIAL_SERVICES } from "@/lib/constants";
 import { formatDateTime } from "@/lib/helpers";
 import AgentConsole from "./agent-console";
 import { Button } from "../ui/button";
-import { disconnectService, checkServicesConnectionStatus } from "@/services/api";
+import { checkServicesConnectionStatus } from "@/services/api";
 import { useServiceConnect } from "@/hooks/useServiceConnect";
+import { useDisconnectService } from "@/services/mutations";
+import { getMyAccountToken } from "@/lib/getMyAccountToken";
 
 interface TestHarnessProps {
   user: User;
@@ -30,6 +32,7 @@ export default function TestHarness({
   const [services, setServices] = useState<Service[]>(INITIAL_SERVICES);
   const [connecting, setConnecting] = useState<Set<string>>(new Set());
   const { connect } = useServiceConnect();
+  const { mutateAsync: disconnectServiceMutation } = useDisconnectService();
 
   const [copied, setCopied] = useState(false);
 
@@ -69,10 +72,16 @@ export default function TestHarness({
   const handleDisconnect = async (id: string) => {
     setConnecting((prev) => new Set(prev).add(id));
     try {
-      await disconnectService(id);
-      setServices((prev) =>
-        prev.map((s) => (s.id === id ? { ...s, status: "disconnected" } : s)),
-      );
+      const service = services.find((s) => s.id === id);
+      if (!service) return;
+      const ma_token = await getMyAccountToken();
+      if (!ma_token) return;
+      await disconnectServiceMutation({
+        connection: service.connection as import("@/services/types").TConnection,
+        ma_token,
+      });
+      const { services: statuses } = await checkServicesConnectionStatus();
+      applyStatuses(statuses);
     } catch (error) {
       console.error(`Failed to disconnect ${id}:`, error);
     } finally {

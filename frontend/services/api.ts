@@ -29,9 +29,13 @@ export const connectService = async (
   }).json<TConnectResponse>();
 };
 
-export const disconnectService = async (serviceId: string): Promise<void> => {
-  await kyInstance(`services/${serviceId}/disconnect`, {
+export const disconnectService = async (payload: {
+  connection: TConnection;
+  ma_token: string;
+}): Promise<void> => {
+  await kyInstance.post(`services/disconnect`, {
     method: "post",
+    json: payload,
   });
 };
 

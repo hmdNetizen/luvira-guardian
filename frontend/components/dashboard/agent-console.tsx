@@ -60,7 +60,7 @@ export default function AgentConsole() {
     approved_steps?: Array<string>,
   ): TWorkFlowPayload {
     return {
-      gitlab_project_id: gitlabIssueIid,
+      gitlab_project_id: gitlabProjectId,
       slack_channel: slackChannel,
       calendar_id: calendarId,
       gitlab_issue_iid: gitlabIssueIid,

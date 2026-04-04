@@ -6,6 +6,9 @@ import { useSearchParams } from "next/navigation";
 import { checkServicesConnectionStatus } from "@/services/api";
 import { TConnection } from "@/services/types";
 import { useServiceConnect } from "@/hooks/useServiceConnect";
+import { useDisconnectService } from "@/services/mutations";
+import { getMyAccountToken } from "@/lib/getMyAccountToken";
+import { Button } from "@/components/ui/button";
 
 type ConnectionState = "connected" | "disconnected";
 
@@ -28,12 +31,12 @@ const INITIAL_SERVICES: Service[] = [
     logo: "/gitlab-logo.svg",
   },
   {
-    id: "linkedin",
-    name: "LinkedIn",
-    description: "Professional network notifications and alerts",
+    id: "sign-in-with-slack",
+    name: "Slack",
+    description: "Team notifications and alerts",
     status: "disconnected",
-    scopes: ["w_member_social"],
-    logo: "/linkedin-logo.svg",
+    scopes: ["chat:write"],
+    logo: "/slack-logo.svg",
   },
   {
     id: "google-oauth2",
@@ -72,8 +75,8 @@ function ServiceCard({
             <Image
               src={service.logo}
               alt={`${service.name} logo`}
-              width={service.id === "linkedin" ? 28 : 22}
-              height={service.id === "linkedin" ? 28 : 22}
+              width={service.id === "sign-in-with-slack" ? 28 : 22}
+              height={service.id === "sign-in-with-slack" ? 28 : 22}
             />
           </div>
           <div>
@@ -133,21 +136,24 @@ function ServiceCard({
 
       <div className="flex gap-2 pt-1">
         {isConnected ? (
-          <button
+          <Button
+            variant="destructive"
+            size="sm"
             onClick={() => onRevoke(service.id)}
             disabled={isConnecting}
-            className="px-3 py-1.5 text-[12px] font-medium text-red-500 border border-red-200 rounded-lg hover:bg-red-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            className="text-[12px] font-medium rounded-lg"
           >
-            Disconnect
-          </button>
+            {isConnecting ? "Disconnecting…" : "Disconnect"}
+          </Button>
         ) : (
-          <button
+          <Button
+            size="sm"
             onClick={() => onConnect(service.id)}
             disabled={isConnecting}
-            className="px-3 py-1.5 text-[12px] font-medium text-white bg-[#3bcaca] border border-[#3bcaca] rounded-lg hover:bg-[#2db8b8] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            className="text-[12px] font-medium rounded-lg bg-[#3bcaca] hover:bg-[#2db8b8] text-white"
           >
             {isConnecting ? "Connecting…" : "Connect"}
-          </button>
+          </Button>
         )}
       </div>
     </div>
@@ -162,6 +168,7 @@ function ConnectedServicesContent() {
   const searchParams = useSearchParams();
 
   const { connect } = useServiceConnect();
+  const { mutateAsync: disconnectServiceMutation } = useDisconnectService();
 
 
 
@@ -213,19 +220,22 @@ function ConnectedServicesContent() {
   };
 
   const handleRevoke = async (id: string) => {
-    // setConnecting((prev) => new Set(prev).add(id));
+    setConnecting((prev) => new Set(prev).add(id));
     try {
-      console.log("disconnected");
+      const ma_token = await getMyAccountToken();
+      if (!ma_token) return;
+      await disconnectServiceMutation({ connection: id as TConnection, ma_token });
+      const { services: statuses } = await checkServicesConnectionStatus();
+      applyStatuses(statuses);
     } catch (error) {
       console.error(`Failed to disconnect ${id}:`, error);
+    } finally {
+      setConnecting((prev) => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
     }
-    // finally {
-    //   setConnecting((prev) => {
-    //     const next = new Set(prev);
-    //     next.delete(id);
-    //     return next;
-    //   });
-    // }
   };
 
   const connectedCount = services.filter(

@@ -3,6 +3,7 @@ import { TConnection, TConnectPayload, TWorkFlowPayload } from "./types";
 import {
   completeServiceConnection,
   connectService,
+  disconnectService,
   executeWorkflow,
   previewWorkflow,
   testHighRiskDelete,
@@ -18,6 +19,13 @@ export const useConnectService = () => {
 export const useCompleteServiceConnection = () => {
   return useMutation({
     mutationFn: completeServiceConnection,
+  });
+};
+
+export const useDisconnectService = () => {
+  return useMutation({
+    mutationFn: (data: { connection: TConnection; ma_token: string }) =>
+      disconnectService(data),
   });
 };
 
