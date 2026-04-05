@@ -1,67 +1,62 @@
-import { Button } from "@/components/ui/button";
-import Image from "next/image";
+import { auth0 } from "@/lib/auth0";
+import { redirect } from "next/navigation";
+import LoginButton from "@/components/LoginButton";
 
-export default function Home() {
+export default async function Home() {
+  const session = await auth0.getSession();
+  if (session) {
+    redirect("/dashboard");
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <main className="min-h-screen bg-gray-50 flex items-center justify-center px-6 py-12 relative overflow-hidden">
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-150 md:w-225 h-75 md:h-112.5 bg-[#3bcaca]/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-100 md:w-150 h-50 md:h-75 bg-[#3bcaca]/8 rounded-full blur-3xl pointer-events-none" />
+
+      <div className="relative w-full max-w-sm md:max-w-md">
+        <div className="bg-white border border-gray-200 rounded-3xl shadow-xl shadow-gray-200/80 overflow-hidden">
+          <div className="h-px bg-linear-to-r from-transparent via-[#3bcaca]/50 to-transparent" />
+
+          <div className="px-8 md:px-10 pt-9 md:pt-10 pb-9 md:pb-10 flex flex-col items-center gap-6 md:gap-7">
+            <div className="w-14 h-14 rounded-2xl bg-[#3bcaca]/10 border border-[#3bcaca]/20 flex items-center justify-center">
+              <svg
+                className="w-7 h-7 text-[#3bcaca]"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.955 11.955 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"
+                />
+              </svg>
+            </div>
+
+            <div className="text-center">
+              <h1 className="text-xl md:text-2xl font-semibold text-gray-900 tracking-[-0.02em]">
+                Luvira Guardian
+              </h1>
+              <p className="text-gray-500 text-sm md:text-[15px] mt-1.5">
+                Secure AI Incident Response Agent
+              </p>
+              <p className="text-gray-400 text-xs mt-1">
+                Powered by Auth0 Token Vault
+              </p>
+            </div>
+
+            <div className="w-full h-px bg-gray-100" />
+
+            <div className="flex flex-col items-center gap-5 w-full">
+              <p className="text-gray-500 text-sm md:text-[15px] text-center leading-relaxed tracking-[-0.01em]">
+                Sign in to access the secure incident response console.
+              </p>
+              <LoginButton />
+            </div>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-39.5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/8 px-5 transition-colors hover:border-transparent hover:bg-black/4 dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-39.5"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-          <Button variant="destructive">Testing</Button>
-        </div>
-      </main>
-    </div>
+      </div>
+    </main>
   );
 }
