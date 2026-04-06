@@ -29,7 +29,7 @@ jobs:
       # ── 3. Install & Build ────────────────────────────────────────────────
       - name: Install dependencies
         working-directory: frontend
-        run: npm ci
+        run: npm install
 
       - name: Build Next.js app
         working-directory: frontend
