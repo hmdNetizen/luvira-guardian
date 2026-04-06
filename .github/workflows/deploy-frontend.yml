@@ -46,7 +46,10 @@ jobs:
             git pull origin main
 
             echo "==> Building Docker image..."
-            docker build -f frontend/Dockerfile -t "$IMAGE" frontend/
+            docker build -f frontend/Dockerfile \
+              --build-arg NEXT_PUBLIC_BASE_URL="$(grep NEXT_PUBLIC_BASE_URL $APP_DIR/frontend/.env.production | cut -d= -f2)" \
+              --build-arg NEXT_PUBLIC_AUTH0_DOMAIN="$(grep NEXT_PUBLIC_AUTH0_DOMAIN $APP_DIR/frontend/.env.production | cut -d= -f2)" \
+              -t "$IMAGE" frontend/
 
             echo "==> Replacing container..."
             docker stop "$CONTAINER" 2>/dev/null || true
