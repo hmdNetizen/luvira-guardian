@@ -91,4 +91,4 @@ jobs:
       - name: Health check
         run: |
           sleep 10
-          curl --fail --silent --show-error "http://${{ secrets.HOST }}:3000"
+          curl --fail --silent --show-error "https://auth.myluvira.com"
